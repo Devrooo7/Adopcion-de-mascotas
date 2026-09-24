@@ -1,0 +1,249 @@
+---
+// src/pages/index.astro
+import '../styles/global.css';
+
+const mascotas = [
+  { id: 'toby', nombre: 'Toby', tipo: 'perro', edad: '3 meses', tags: 'Cachorro', desc: 'Muy juguetón y cariñoso', img: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', historia: 'Toby fue rescatado de una caja de cartón junto a sus hermanitos durante una noche de lluvia. A pesar de su difícil inicio, es el perrito más alegre del mundo. Le encanta perseguir pelotas y dormir abrazado de una manta calientita. Ideal para una familia activa.' },
+  { id: 'luna', nombre: 'Luna', tipo: 'gato', edad: '6 meses', tags: 'Joven', desc: 'Tranquila, ideal para departamento', img: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', historia: 'Luna es una gatita muy zen. Fue encontrada en el techo de una panadería. Es extremadamente limpia, silenciosa y disfruta pasar las tardes tomando el sol junto a una ventana. Si buscas compañía tranquila para leer o trabajar, Luna es tu chica.' },
+  { id: 'rocky', nombre: 'Rocky', tipo: 'perro', edad: '2 años', tags: 'Adulto', desc: 'Protector, sabe pasear con correa', img: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', historia: 'Rocky tuvo dueños antes, pero por mudanza no pudieron llevarlo. Ya sabe ir al baño afuera, camina perfecto con correa y sabe dar la pata. Es un perro leal, que te avisará si alguien llega a la puerta, pero se deshace en mimos con quienes conoce.' },
+  { id: 'mimi', nombre: 'Mimi', tipo: 'gato', edad: '2 meses', tags: 'Cachorro', desc: 'Buscando mimos las 24 horas', img: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', historia: 'Mimi es una pequeña "motorcito". Desde que la levantas empieza a ronronear. Es muy curiosa y juguetona, todo para ella es un juguete nuevo. Necesita un hogar donde le den mucha atención y no pase demasiadas horas sola, ya que es muy bebé.' },
+  { id: 'buba', nombre: 'Buba', tipo: 'perro', edad: '4 meses', tags: 'Cachorro', desc: 'Energético, ideal para familias', img: 'https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', historia: 'Buba es pura energía y orejas. Lo rescatamos deambulando cerca de un mercado. Se lleva excelente con otros perros y le encantan los niños. Crecerá para ser de tamaño mediano-grande, así que un patio donde correr sería su sueño hecho realidad.' },
+  { id: 'simba', nombre: 'Simba', tipo: 'gato', edad: '1 año', tags: 'Joven', desc: 'Independiente y muy curioso', img: 'https://images.unsplash.com/photo-1519052537078-e6302a4968d4?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', historia: 'Simba hace honor a su nombre, se siente el rey de la casa. Es un gato independiente; vendrá por caricias cuando él quiera, pero es muy respetuoso de tu espacio. Le encanta trepar a lugares altos y observar todo desde su trono.' },
+  { id: 'max', nombre: 'Max', tipo: 'perro', edad: '3 años', tags: 'Adulto', desc: 'Muy obediente y rescatado de la calle', img: 'https://images.unsplash.com/photo-1552053831-71594a27632d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', historia: 'Max pasó sus primeros años en la calle, por lo que es un perro muy agradecido. Aprecia cada plato de comida y cada caricia. Es muy inteligente, ya aprendió a sentarse y a esperar su comida. Busca una segunda oportunidad para ser el chico bueno de alguien.' },
+  { id: 'garfield', nombre: 'Garfield', tipo: 'gato', edad: '4 años', tags: 'Adulto', desc: 'Amante de las siestas y la comida', img: 'https://images.unsplash.com/photo-1495360010541-f48722b34f7d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', historia: 'Un poco gordito pero lleno de amor. Garfield llegó al refugio con sobrepeso, estamos ayudándolo con una dieta especial, pero sigue siendo un glotón. Es el compañero perfecto para maratones de series los domingos por la tarde.' },
+  { id: 'kira', nombre: 'Kira', tipo: 'perro', edad: '1 año', tags: 'Joven', desc: 'Activa, perfecta para salir a correr', img: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', historia: 'Kira es atlética y ágil. Si eres una persona que sale a trotar, hace senderismo o va a la montaña, Kira es tu alma gemela canina. Tiene una resistencia increíble y siempre está lista para la aventura. En casa, después del ejercicio, es muy dócil.' },
+  { id: 'pelusa', nombre: 'Pelusa', tipo: 'gato', edad: '3 meses', tags: 'Cachorro', desc: 'Una bolita de pelos muy juguetona', img: 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', historia: 'Pelusa es 50% pelo y 50% travesuras. Le encanta esconderse en cajas, atacar tus pies bajo las sábanas y cazar moscas imaginarias. Requiere cepillado frecuente, pero lo disfruta muchísimo. Lista para llenar tu casa de risas.' },
+  { id: 'bruno', nombre: 'Bruno', tipo: 'perro', edad: '5 años', tags: 'Senior', desc: 'Tranquilo, busca un sofá donde descansar', img: 'https://images.unsplash.com/photo-1505628346881-b72b27e84530?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', historia: 'Bruno es lo que llamamos un "alma vieja". Ya superó la etapa de morder zapatos y correr como loco. Él solo quiere un cojín suave, dos paseos cortos al día y que le rasquen detrás de las orejas. Perfecto para adultos mayores o personas de rutinas tranquilas.' },
+  { id: 'salem', nombre: 'Salem', tipo: 'gato', edad: '2 años', tags: 'Adulto', desc: 'Misterioso pero muy afectuoso de noche', img: 'https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', historia: 'Salem parece una panterita en miniatura. Durante el día le gusta esconderse en lugares oscuros a dormir, pero en cuanto cae la noche, se vuelve súper mimoso. Le encanta dormir en la cama de sus humanos y amasar las cobijas antes de dormir.' }
+];
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Huellitas en Casa - Adopción de Mascotas 🐾</title>
+</head>
+<body class="bg-amber-50/40 text-slate-800 antialiased font-sans flex flex-col min-h-screen">
+
+
+    <nav class="bg-white border-b border-amber-100 sticky top-0 z-50 shadow-xs">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="/" class="text-4xl font-black text-amber-600 tracking-tight flex items-center gap-1">
+                Huellitas en Casa 🐾
+            </a>
+            <a href="/adoptar" class="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs md:text-sm py-2 px-5 rounded-full transition-all duration-200 shadow-md hover:shadow-lg active:scale-95 cursor-pointer">
+                Llenar Solicitud
+            </a>
+        </div>
+    </nav>
+
+
+    <main class="max-w-6xl mx-auto px-4 py-12 md:py-16 flex flex-col items-center text-center flex-grow">
+        <span class="bg-orange-100 text-orange-700 text-xs font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider mb-4">
+            Adopción Responsable
+        </span>
+        
+        <h1 class="text-4xl md:text-6xl font-black text-slate-900 tracking-tight max-w-3xl leading-tight">
+            Encuentra a tu nuevo <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-600">mejor amigo</span>
+        </h1>
+        
+        <p class="mt-4 text-slate-600 text-base md:text-lg max-w-xl">
+            Haz clic en la foto de un peludito para conocer su historia, o fíltralos por tu especie favorita.
+        </p>
+
+        <!-- BOTONES DE FILTRO INTERACTIVOS -->
+        <div class="mt-10 flex gap-3 p-1.5 bg-amber-100/50 rounded-2xl border border-amber-200/60 max-w-xs md:max-w-md w-full justify-center">
+            <button data-filter="todos" class="filter-btn flex-1 py-2 px-4 rounded-xl text-sm font-bold transition-all duration-200 cursor-pointer bg-amber-500 text-white shadow-xs">Todos</button>
+            <button data-filter="perro" class="filter-btn flex-1 py-2 px-4 rounded-xl text-sm font-bold text-slate-600 transition-all duration-200 cursor-pointer hover:bg-white/60">Perros 🐶</button>
+            <button data-filter="gato" class="filter-btn flex-1 py-2 px-4 rounded-xl text-sm font-bold text-slate-600 transition-all duration-200 cursor-pointer hover:bg-white/60">Gatos 🐱</button>
+        </div>
+
+        <!-- CUADRÍCULA RESPONSIVA -->
+        <div id="grid-mascotas" class="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full transition-all duration-500">
+            {mascotas.map((mascota) => (
+                <div data-tipo={mascota.tipo} class="pet-card flex flex-col bg-white rounded-3xl border border-amber-100/70 overflow-hidden shadow-xl shadow-amber-900/5 transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl group opacity-100 transform translate-y-0">
+                    
+                    <!-- IMAGEN CLICKEABLE PARA ABRIR MODAL -->
+                    <div class="relative h-64 bg-slate-100 overflow-hidden cursor-pointer open-modal-btn" 
+                         data-nombre={mascota.nombre} 
+                         data-img={mascota.img} 
+                         data-edad={mascota.edad} 
+                         data-historia={mascota.historia}
+                         data-id={mascota.id}
+                         title="Haz clic para leer mi historia">
+                        <img src={mascota.img} alt={mascota.nombre} class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" />
+                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+                            <span class="opacity-0 group-hover:opacity-100 bg-white/90 text-slate-900 text-sm font-bold py-2 px-4 rounded-full shadow-lg transition-opacity duration-300 transform translate-y-4 group-hover:translate-y-0">Ver historia 👀</span>
+                        </div>
+                        <span class="absolute top-3 left-3 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-xs z-10">
+                            {mascota.tags}
+                        </span>
+                    </div>
+
+                    <div class="p-6 text-left flex flex-col flex-grow">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-2xl font-black text-slate-900">{mascota.nombre}</h3>
+                            <span class="text-xs bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-lg">{mascota.edad}</span>
+                        </div>
+                        <p class="text-slate-500 text-sm mt-2 flex-grow">{mascota.desc}</p>
+                        
+                        <!-- BOTÓN DE ADOPTAR -->
+                        <a href={`/adoptar?mascota=${mascota.id}`} class="mt-5 block w-full text-center bg-slate-900 hover:bg-amber-500 text-white font-bold py-3 rounded-2xl transition-colors duration-200 text-sm shadow-xs cursor-pointer active:scale-[0.98]">
+                            Adoptar a {mascota.nombre} 🐾
+                        </a>
+                    </div>
+                </div>
+            ))}
+        </div>
+    </main>
+
+    <!-- FOOTER PROFESIONAL -->
+    <footer class="bg-slate-900 text-slate-300 py-12 mt-16 border-t-4 border-amber-500">
+        <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                <h4 class="text-white text-xl font-black mb-4 flex items-center gap-2">Huellitas en Casa 🐾</h4>
+                <p class="text-sm text-slate-400 leading-relaxed mb-4">
+                    Somos una organización sin fines de lucro dedicada a rescatar, rehabilitar y buscar hogares amorosos para animales en situación de calle.
+                </p>
+            </div>
+            <div>
+                <h4 class="text-white text-lg font-bold mb-4">Enlaces Rápidos</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="/" class="hover:text-amber-400 transition-colors">Ver mascotas disponibles</a></li>
+                    <li><a href="/adoptar" class="hover:text-amber-400 transition-colors">Formulario de adopción</a></li>
+                    <li><a href="#" class="hover:text-amber-400 transition-colors">Sobre nosotros</a></li>
+                    <li><a href="#" class="hover:text-amber-400 transition-colors">Preguntas frecuentes</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white text-lg font-bold mb-4">Contacto</h4>
+                <ul class="space-y-2 text-sm text-slate-400">
+                    <li>📍 Calle Esperanza #123, Ciudad Santa Catarina, NL.</li>
+                    <li>📞 +52 (55) 1234-5678</li>
+                    <li>✉️ adopciones@huellitasencasa.org</li>
+                </ul>
+            </div>
+        </div>
+        <div class="max-w-6xl mx-auto px-4 mt-8 pt-8 border-t border-slate-800 text-center text-xs text-slate-500">
+            &copy; {new Date().getFullYear()} Huellitas en Casa. Todos los derechos reservados.
+        </div>
+    </footer>
+
+    <!-- MODAL DE MASCOTA (Oculto por defecto) -->
+    <div id="mascota-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <!-- Fondo oscuro -->
+        <div id="modal-bg" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0"></div>
+        
+        <!-- Tarjeta del Modal -->
+        <div id="modal-content" class="relative bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden transform scale-95 opacity-0 transition-all duration-300 flex flex-col md:flex-row">
+            <!-- Botón Cerrar -->
+            <button id="close-modal" class="absolute top-3 right-3 bg-white text-slate-800 w-8 h-8 rounded-full flex items-center justify-center font-bold shadow-md hover:bg-slate-100 z-10">✕</button>
+            
+            <!-- Imagen en Modal -->
+            <div class="w-full md:w-2/5 h-48 md:h-auto bg-slate-100">
+                <img id="modal-img" src="" alt="Mascota" class="w-full h-full object-cover" />
+            </div>
+        
+            <div class="p-6 md:p-8 w-full md:w-3/5 flex flex-col">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 id="modal-nombre" class="text-3xl font-black text-slate-900">Nombre</h2>
+                    <span id="modal-edad" class="text-xs bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-lg">Edad</span>
+                </div>
+                <h4 class="text-xs font-bold text-amber-500 uppercase tracking-wider mb-4">Su Historia</h4>
+                <p id="modal-historia" class="text-slate-600 text-sm leading-relaxed flex-grow overflow-y-auto max-h-48 md:max-h-none mb-6">
+                   
+                </p>
+                <a id="modal-adoptar-btn" href="#" class="mt-auto block w-full text-center bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-2xl transition-colors shadow-lg cursor-pointer">
+                    Adoptar 🐾
+                </a>
+            </div>
+        </div>
+    </div>
+
+ 
+    <script>
+      
+        const botones = document.querySelectorAll<HTMLButtonElement>('.filter-btn');
+        const tarjetas = document.querySelectorAll<HTMLDivElement>('.pet-card');
+
+        botones.forEach(boton => {
+            boton.addEventListener('click', () => {
+                botones.forEach(b => b.classList.remove('bg-amber-500', 'text-white', 'shadow-xs'));
+                botones.forEach(b => b.classList.add('text-slate-600', 'hover:bg-white/60'));
+                
+                boton.classList.add('bg-amber-500', 'text-white', 'shadow-xs');
+                boton.classList.remove('text-slate-600', 'hover:bg-white/60');
+
+                const filtro = boton.getAttribute('data-filter');
+
+                tarjetas.forEach(tarjeta => {
+                    const tipoMascota = tarjeta.getAttribute('data-tipo');
+                    if (filtro === 'todos' || tipoMascota === filtro) {
+                        tarjeta.style.display = 'flex';
+                        setTimeout(() => {
+                            tarjeta.style.opacity = '1';
+                            tarjeta.style.transform = 'translateY(0)';
+                        }, 50);
+                    } else {
+                        tarjeta.style.opacity = '0';
+                        tarjeta.style.transform = 'translateY(20px)';
+                        setTimeout(() => {
+                            tarjeta.style.display = 'none';
+                        }, 300);
+                    }
+                });
+            });
+        });
+
+     
+        const modal = document.getElementById('mascota-modal');
+        const modalBg = document.getElementById('modal-bg');
+        const modalContent = document.getElementById('modal-content');
+        const btnCerrar = document.getElementById('close-modal');
+        const imgsCards = document.querySelectorAll('.open-modal-btn');
+
+    
+        imgsCards.forEach(imgCont => {
+            imgCont.addEventListener('click', () => {
+            
+                const nombre = imgCont.getAttribute('data-nombre');
+                const img = imgCont.getAttribute('data-img');
+                const edad = imgCont.getAttribute('data-edad');
+                const historia = imgCont.getAttribute('data-historia');
+                const id = imgCont.getAttribute('data-id');
+
+                (document.getElementById('modal-nombre') as HTMLElement).innerText = nombre || '';
+                (document.getElementById('modal-edad') as HTMLElement).innerText = edad || '';
+                (document.getElementById('modal-historia') as HTMLElement).innerText = historia || '';
+                (document.getElementById('modal-img') as HTMLImageElement).src = img || '';
+                (document.getElementById('modal-adoptar-btn') as HTMLAnchorElement).href = `/adoptar?mascota=${id}`;
+
+                modal?.classList.remove('hidden');
+               
+                setTimeout(() => {
+                    modalBg?.classList.remove('opacity-0');
+                    modalBg?.classList.add('opacity-100');
+                    modalContent?.classList.remove('scale-95', 'opacity-0');
+                    modalContent?.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            });
+        });
+
+   
+        const cerrarModal = () => {
+            modalBg?.classList.remove('opacity-100');
+            modalBg?.classList.add('opacity-0');
+            modalContent?.classList.remove('scale-100', 'opacity-100');
+            modalContent?.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal?.classList.add('hidden');
+            }, 300); 
+        };
+
+        btnCerrar?.addEventListener('click', cerrarModal);
+        modalBg?.addEventListener('click', cerrarModal);
+    </script>
+</body>
+</html>

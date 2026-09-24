@@ -1,0 +1,62 @@
+---
+// src/pages/gracias.astro
+import '../styles/global.css';
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Gracias por tu solicitud! - Huellitas en Casa</title>
+    <meta http-equiv="refresh" content="6;url=/" />
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased font-sans min-h-screen flex flex-col">
+
+    <!-- NAVEGACIÓN SIMPLE -->
+    <nav class="bg-white border-b border-amber-100 shadow-xs">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-center">
+            <span class="text-xl font-black text-amber-600 tracking-tight flex items-center gap-1">
+                Huellitas en Casa 🐾
+            </span>
+        </div>
+    </nav>
+
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-white p-10 rounded-3xl shadow-xl border border-slate-100 text-center transform animate-fade-in-up">
+            
+            <div class="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <span class="text-5xl">❤️</span>
+            </div>
+
+            <h1 class="text-3xl font-black text-slate-900 mb-4 tracking-tight">
+                ¡Solicitud Recibida!
+            </h1>
+            
+            <p class="text-slate-600 mb-8 leading-relaxed">
+                Gracias por dar el primer paso para cambiarle la vida a un peludito. Nuestro equipo revisará tus respuestas detalladamente y nos pondremos en contacto contigo pronto.
+            </p>
+
+            <a href="/" class="inline-block w-full bg-slate-900 hover:bg-amber-500 text-white font-bold py-4 rounded-xl transition-all shadow-md active:scale-95">
+                Volver a la galería
+            </a>
+            
+            <p class="text-xs text-slate-400 mt-6 flex items-center justify-center gap-2">
+                <svg class="animate-spin h-4 w-4 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Regresando automáticamente en unos segundos...
+            </p>
+        </div>
+    </main>
+
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+    </style>
+
+</body>
+</html>
