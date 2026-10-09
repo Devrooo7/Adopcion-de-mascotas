@@ -46,7 +46,7 @@ const mascotas = [
                 <p class="text-slate-500 max-w-xl mx-auto">Queremos asegurarnos de que nuestras mascotas vayan al mejor hogar posible. Por favor, tómate tu tiempo para llenar este formulario con sinceridad.</p>
             </div>
             
-            <form id="form-adopcion" action="/api/adopcion" method="POST" class="space-y-8">
+            <form id="form-adopcion" class="space-y-8">
                 
                 <!-- SECCIÓN 1: DATOS PERSONALES -->
                 <section class="bg-white p-8 rounded-3xl shadow-md border border-slate-100">
@@ -191,7 +191,7 @@ const mascotas = [
         &copy; {new Date().getFullYear()} Huellitas en Casa. Por un mundo con menos abandono.
     </footer>
 
-    <!-- SCRIPT DE AUTOSELECCIÓN Y ACTIVACIÓN AL DAR CLIC -->
+    <!-- SCRIPT DE ENVÍO Y AUTOSELECCIÓN -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -204,12 +204,49 @@ const mascotas = [
                 }
             }
 
-            const form = document.getElementById('form-adopcion');
-            const btnSubmit = document.getElementById('btn-submit');
+            const form = document.getElementById('form-adopcion') as HTMLFormElement;
+            const btnSubmit = document.getElementById('btn-submit') as HTMLButtonElement;
 
-            if (btnSubmit && form) {
-                btnSubmit.addEventListener('click', () => {
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
                     form.classList.add('submitted');
+
+                    if (!form.checkValidity()) {
+                        return;
+                    }
+
+                    if (btnSubmit) {
+                        btnSubmit.disabled = true;
+                        btnSubmit.textContent = 'Enviando solicitud... 🐾';
+                    }
+
+                    const formData = new FormData(form);
+
+                    try {
+                        const response = await fetch('/api/adopcion', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (response.ok) {
+                            window.location.href = '/gracias/';
+                        } else {
+                            const errorData = await response.json().catch(() => ({}));
+                            alert('Error al enviar la solicitud: ' + (errorData.error || 'Inténtalo de nuevo.'));
+                            if (btnSubmit) {
+                                btnSubmit.disabled = false;
+                                btnSubmit.textContent = 'Enviar mi Solicitud Formal 🐾';
+                            }
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        alert('Ocurrió un problema de conexión al enviar el formulario.');
+                        if (btnSubmit) {
+                            btnSubmit.disabled = false;
+                            btnSubmit.textContent = 'Enviar mi Solicitud Formal 🐾';
+                        }
+                    }
                 });
             }
         });
