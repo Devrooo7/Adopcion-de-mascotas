@@ -19,6 +19,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       otras_mascotas: formData.get('personas_en_casa'),
       horas_sola: formData.get('horas_sola'),
       motivo_adopcion: formData.get('motivo_adopcion'),
+      mascota_id: formData.get('mascota'),
       estado: 'nuevo'
     };
 
