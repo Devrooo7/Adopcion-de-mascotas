@@ -1,0 +1,179 @@
+---
+import '../styles/global.css';
+import { supabase } from '../lib/supabase';
+
+export const prerender = false;
+
+// Carga inicial SSR de las reseñas vigentes
+const { data: resenasIniciales } = await supabase
+  .from('resenas_vigentes')
+  .select('*')
+  .order('created_at', { ascending: false });
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reseñas y Experiencias - Huellitas en Casa</title>
+</head>
+<body class="bg-amber-50/40 text-slate-800 antialiased font-sans min-h-screen flex flex-col">
+    <!-- NAVEGACIÓN -->
+    <nav class="bg-white border-b border-amber-100 sticky top-0 z-50 shadow-xs">
+        <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="/" class="text-slate-500 hover:text-amber-600 font-medium flex items-center gap-2 transition-colors">
+                ← Volver al Inicio
+            </a>
+            <span class="text-2xl font-bold text-amber-600">Huellitas en Casa 🐾</span>
+        </div>
+    </nav>
+
+    <main class="flex-grow max-w-5xl mx-auto p-4 py-10 w-full space-y-12">
+        
+        <!-- ENCABEZADO -->
+        <div class="text-center max-w-2xl mx-auto space-y-3">
+            <h1 class="text-3xl md:text-5xl font-black text-slate-900 tracking-tight">Historias de Adopción 💬</h1>
+            <p class="text-slate-500">Conoce las experiencias de quienes han cambiado una vida. <br><span class="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full font-semibold">Nota: Los comentarios se conservan publicados durante 1 año.</span></p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- FORMULARIO NUEVA RESEÑA -->
+            <section class="lg:col-span-1 bg-white p-6 rounded-3xl shadow-md border border-slate-100 h-fit sticky top-24">
+                <h2 class="text-xl font-bold text-slate-900 mb-4">Déjanos tu opinión</h2>
+                
+                <!-- ALERTA DINÁMICA DE DISEÑO MODAL/BANNER -->
+                <div id="form-mensaje" class="hidden mb-4 p-3.5 rounded-2xl text-sm font-medium transition-all duration-300 flex items-center gap-2"></div>
+
+                <form id="form-resena" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Tu Nombre *</label>
+                        <input type="text" name="nombre_usuario" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-amber-500 bg-slate-50 focus:bg-white text-sm transition-all" placeholder="Ej. María López">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Mascota Adoptada (Opcional)</label>
+                        <input type="text" name="mascota_adoptada" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-amber-500 bg-slate-50 focus:bg-white text-sm transition-all" placeholder="Ej. Toby">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Calificación</label>
+                        <select name="calificacion" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-amber-500 bg-slate-50 font-medium text-sm transition-all">
+                            <option value="5">⭐⭐⭐⭐⭐ (5/5 Excelente)</option>
+                            <option value="4">⭐⭐⭐⭐ (4/5 Muy Buena)</option>
+                            <option value="3">⭐⭐⭐ (3/5 Buena)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Tu Comentario *</label>
+                        <textarea name="comentario" required rows="4" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-amber-500 bg-slate-50 focus:bg-white text-sm resize-none transition-all" placeholder="Cuéntanos cómo fue tu experiencia..."></textarea>
+                    </div>
+
+                    <button id="btn-enviar-resena" type="submit" class="w-full bg-slate-900 hover:bg-amber-500 text-white font-bold py-3 rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2">
+                        <span>Publicar Comentario 🐾</span>
+                    </button>
+                </form>
+            </section>
+
+            <!-- LISTADO DE RESEÑAS -->
+            <section class="lg:col-span-2 space-y-4">
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">Comentarios Recientes</h2>
+
+                <div id="contenedor-resenas" class="space-y-4">
+                    {resenasIniciales && resenasIniciales.length > 0 ? (
+                    resenasIniciales.map((r) => (
+                <div class="bg-white p-6 rounded-2xl shadow-xs border border-slate-100 space-y-3 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <!-- LEEMOS PRIMERO nombre_usuario QUE ES DONDE SÍ ESTÁN GUARDADOS LOS NOMBRES -->
+                        <h3 class="font-bold text-slate-900 text-base">{r.nombre_usuario || r.nombre_adoptante || 'Anónimo'}</h3>
+                        {(r.mascota_adoptada || r.mascota_nombre) && (
+                            <span class="text-xs text-amber-600 font-medium">Adoptó a: {r.mascota_adoptada || r.mascota_nombre}</span>
+                        )}
+                    </div>
+                    <!-- MOSTRAR CALIFICACIÓN CON ESTRELLAS -->
+                    <div class="flex items-center gap-1 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">
+                        <span class="text-sm">{'⭐'.repeat(r.calificacion || 5)}</span>
+                        <span class="text-xs font-bold text-amber-800 ml-1">({r.calificacion || 5}/5)</span>
+                    </div>
+                </div>
+                
+                <p class="text-slate-600 text-sm leading-relaxed">{r.comentario}</p>
+                
+                <p class="text-xs text-slate-400 text-right">
+                    {new Date(r.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' })}
+                </p>
+            </div>
+        ))
+    ) : (
+        <div class="bg-white p-8 text-center rounded-2xl border border-slate-100 text-slate-400">
+            Aún no hay reseñas registradas este año. ¡Sé el primero en comentar!
+        </div>
+    )}
+</div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('form-resena') as HTMLFormElement;
+            const btn = document.getElementById('btn-enviar-resena') as HTMLButtonElement;
+            const mensajeBox = document.getElementById('form-mensaje') as HTMLDivElement;
+
+            const mostrarAlerta = (texto: string, tipo: 'exito' | 'error') => {
+                if (!mensajeBox) return;
+                mensajeBox.textContent = texto;
+                mensajeBox.className = `mb-4 p-3.5 rounded-2xl text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
+                    tipo === 'exito' 
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
+                        : 'bg-rose-50 text-rose-800 border border-rose-200'
+                }`;
+            };
+
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Publicando...`;
+                    }
+
+                    const formData = new FormData(form);
+
+                    try {
+                        const res = await fetch('/api/resenas', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (res.ok) {
+                            mostrarAlerta('🎉 ¡Gracias por tu comentario! Se ha publicado con éxito.', 'exito');
+                            form.reset();
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1400);
+                        } else {
+                            const err = await res.json();
+                            mostrarAlerta('❌ Error: ' + (err.error || 'No se pudo publicar el comentario.'), 'error');
+                            if (btn) {
+                                btn.disabled = false;
+                                btn.innerHTML = `<span>Publicar Comentario 🐾</span>`;
+                            }
+                        }
+                    } catch (e) {
+                        mostrarAlerta('⚠️ Ocurrió un error de red al enviar el comentario.', 'error');
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = `<span>Publicar Comentario 🐾</span>`;
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
