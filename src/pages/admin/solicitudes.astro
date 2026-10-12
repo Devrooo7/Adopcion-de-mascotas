@@ -128,9 +128,10 @@ const solicitudes = solicitudesDB || [];
                                         <p class="text-slate-500 truncate" title={sol.motivo_adopcion}>Razones: {sol.motivo_adopcion}</p>
                                     </td>
                                     <td class="p-4 align-top">
-                                        <!-- CAMBIO DE ESTATUS CLIENT-SIDE SÍNCRONO CON SUPABASE -->
+                                        <!-- CAMBIO DE ESTATUS CON SINCRONIZACIÓN AUTOMÁTICA DE MASCOTA -->
                                         <select 
                                             data-solicitud-id={sol.id}
+                                            data-mascota-id={sol.mascota_id}
                                             class="cambiar-estatus-select text-xs font-extrabold px-3 py-1.5 rounded-xl border cursor-pointer transition-colors bg-slate-100 text-slate-700 border-slate-300"
                                         >
                                             <option value="nuevo" selected={sol.estado === 'nuevo'}>Nuevo 🆕</option>
@@ -172,7 +173,7 @@ const solicitudes = solicitudesDB || [];
         </div>
     </main>
 
-    <!-- SCRIPT DE INTERACCIÓN CLIENTE (ACTUALIZAR ESTATUS Y COPIAR CORREO) -->
+    <!-- SCRIPT DE INTERACCIÓN CLIENTE (ACTUALIZAR ESTATUS DE SOLICITUD Y MASCOTA) -->
     <script>
         import { supabase } from '../../lib/supabase';
 
@@ -181,23 +182,40 @@ const solicitudes = solicitudesDB || [];
             select.addEventListener('change', async (e) => {
                 const target = e.target as HTMLSelectElement;
                 const id = target.getAttribute('data-solicitud-id');
+                const mascotaId = target.getAttribute('data-mascota-id');
                 const nuevoEstado = target.value;
 
                 target.disabled = true;
 
-                const { error } = await supabase
+                // 1. Actualizar el estado de la solicitud en Supabase
+                const { error: errorSolicitud } = await supabase
                     .from('solicitudes')
                     .update({ estado: nuevoEstado })
                     .eq('id', id);
 
-                target.disabled = false;
-
-                if (error) {
-                    alert('Error al actualizar el estatus: ' + error.message);
-                } else {
-                    // Recargar ligeramente la vista si hay un filtro aplicado
-                    window.location.reload();
+                if (errorSolicitud) {
+                    alert('Error al actualizar la solicitud: ' + errorSolicitud.message);
+                    target.disabled = false;
+                    return;
                 }
+
+                // 2. Si hay una mascota asociada, actualizar su estado en la tabla 'mascotas'
+                if (mascotaId && mascotaId !== 'null' && mascotaId.trim() !== '') {
+                    const estadoMascota = nuevoEstado === 'aceptada' ? 'adoptado' : 'disponible';
+                    
+                    // Actualiza buscando por id coincidente o por nombre de la mascota
+                    const { error: errorMascota } = await supabase
+                        .from('mascotas')
+                        .update({ estado: estadoMascota })
+                        .or(`id.eq.${mascotaId},nombre.ilike.${mascotaId}`);
+
+                    if (errorMascota) {
+                        console.error('Error actualizando estado de la mascota:', errorMascota);
+                    }
+                }
+
+                target.disabled = false;
+                window.location.reload();
             });
         });
 
