@@ -1,0 +1,343 @@
+---
+import '../../styles/global.css';
+import { supabase } from '../../lib/supabase';
+
+export const prerender = false;
+
+// Definición estricta de tipos para cumplir con Astro strict config
+interface Mascota {
+    id: string;
+    nombre: string;
+    tipo: string;
+    edad: string;
+    tags: string;
+    desc: string;
+    historia: string;
+    img: string;
+    estado: string;
+}
+
+// Verificación de Autenticación
+const accessToken = Astro.cookies.get('sb-access-token')?.value;
+const refreshToken = Astro.cookies.get('sb-refresh-token')?.value;
+
+if (accessToken && refreshToken) {
+    await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+    });
+}
+
+const { data: { session } } = await supabase.auth.getSession();
+
+if (!session) {
+    return Astro.redirect('/admin/login');
+}
+
+// Cargar catálogo de mascotas tipado
+const { data } = await supabase.from('mascotas').select('*').order('nombre', { ascending: true });
+const mascotas: Mascota[] = data || [];
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Mascotas - Huellitas Admin</title>
+</head>
+<body class="bg-amber-50/40 text-slate-800 antialiased font-sans min-h-screen flex flex-col relative">
+
+    <!-- CONTENEDOR DE TOASTS DE NOTIFICACIÓN -->
+    <div id="toast-container" class="fixed top-20 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full"></div>
+
+    <!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN -->
+    <div id="modal-confirm" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 text-center space-y-4 animate-in fade-in zoom-in duration-150">
+            <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl font-bold">
+                ⚠️
+            </div>
+            <div>
+                <h3 class="text-lg font-black text-slate-900">¿Dar de baja mascota?</h3>
+                <p class="text-xs text-slate-500 mt-1">Esta acción eliminará la mascota del catálogo público.</p>
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button id="btn-cancelar-modal" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer">
+                    Cancelar
+                </button>
+                <button id="btn-confirmar-eliminar" class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-sm">
+                    Sí, dar de baja
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVEGACIÓN -->
+    <nav class="bg-white border-b border-amber-100 sticky top-0 z-40 shadow-xs">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="text-xl font-black text-amber-600">Huellitas Admin 🐾</span>
+                <span class="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-bold">Catálogo de Mascotas</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="/admin/solicitudes" class="text-xs font-bold text-slate-500 hover:text-amber-600 transition-colors">
+                    📋 Ver Solicitudes
+                </a>
+                <a href="/" class="text-xs font-bold text-slate-500 hover:text-amber-600 transition-colors">
+                    Sitio Público ↗
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow max-w-6xl mx-auto px-4 py-10 w-full space-y-8">
+        
+        <!-- REGISTRO / EDICIÓN DE MASCOTA -->
+        <section class="bg-white p-6 rounded-3xl border border-amber-100 shadow-xl shadow-amber-900/5 space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 id="titulo-form" class="text-xl font-black text-slate-900">Agregar o Editar Mascota 🐶🐱</h2>
+                <span id="badge-modo" class="hidden text-xs bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-full">Modo Edición ✏️</span>
+            </div>
+
+            <form id="form-mascota" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input type="hidden" name="id" id="mascota-id" />
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nombre *</label>
+                    <input type="text" name="nombre" id="nombre" required class="w-full px-3 py-2 rounded-xl border border-amber-200 bg-amber-50/20 text-sm outline-none focus:border-amber-500 focus:bg-white transition-all" placeholder="Ej. Firulais" />
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Especie *</label>
+                    <select name="tipo" id="tipo" required class="w-full px-3 py-2 rounded-xl border border-amber-200 bg-amber-50/20 text-sm outline-none focus:border-amber-500 focus:bg-white transition-all">
+                        <option value="perro">Perro 🐶</option>
+                        <option value="gato">Gato 🐱</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Edad *</label>
+                    <input type="text" name="edad" id="edad" required class="w-full px-3 py-2 rounded-xl border border-amber-200 bg-amber-50/20 text-sm outline-none focus:border-amber-500 focus:bg-white transition-all" placeholder="Ej. 2 años" />
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Tag / Etiqueta *</label>
+                    <input type="text" name="tags" id="tags" required class="w-full px-3 py-2 rounded-xl border border-amber-200 bg-amber-50/20 text-sm outline-none focus:border-amber-500 focus:bg-white transition-all" placeholder="Ej. Cachorro, Adulto, Senior" />
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Estado de Adopción *</label>
+                    <select name="estado" id="estado" required class="w-full px-3 py-2 rounded-xl border border-amber-200 bg-amber-50/20 text-sm outline-none focus:border-amber-500 focus:bg-white transition-all">
+                        <option value="disponible">🟢 Disponible para Adopción</option>
+                        <option value="adoptado">🎉 ¡Ya fue Adoptado!</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">URL de la Imagen *</label>
+                    <input type="url" name="img" id="img" required class="w-full px-3 py-2 rounded-xl border border-amber-200 bg-amber-50/20 text-sm outline-none focus:border-amber-500 focus:bg-white transition-all" placeholder="https://..." />
+                </div>
+
+                <div class="md:col-span-3">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Descripción corta</label>
+                    <input type="text" name="desc" id="desc" class="w-full px-3 py-2 rounded-xl border border-amber-200 bg-amber-50/20 text-sm outline-none focus:border-amber-500 focus:bg-white transition-all" placeholder="Ej. Muy amigable y le gusta jugar..." />
+                </div>
+
+                <div class="md:col-span-3">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Historia completa</label>
+                    <textarea name="historia" id="historia" rows="3" class="w-full px-3 py-2 rounded-xl border border-amber-200 bg-amber-50/20 text-sm outline-none focus:border-amber-500 focus:bg-white transition-all resize-none" placeholder="Cuenta la historia del rescate..."></textarea>
+                </div>
+
+                <div class="md:col-span-3 flex justify-end gap-3 pt-2">
+                    <button type="button" id="btn-cancelar" class="hidden px-5 py-2.5 rounded-xl border border-slate-200 font-bold text-xs text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">Cancelar Edición</button>
+                    <button type="submit" id="btn-guardar" class="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-amber-500 text-white font-bold text-xs transition-colors shadow-md cursor-pointer flex items-center gap-2">
+                        <span>Guardar Mascota 🐾</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- LISTADO DE MASCOTAS -->
+        <section class="bg-white rounded-3xl border border-amber-100 shadow-xl shadow-amber-900/5 overflow-hidden">
+            <div class="p-6 border-b border-amber-100">
+                <h2 class="text-xl font-black text-slate-900">Mascotas Registradas ({mascotas?.length || 0})</h2>
+            </div>
+            <div class="divide-y divide-amber-100/60">
+                {mascotas && mascotas.map((m) => (
+                    <div class="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-amber-50/20 transition-colors">
+                        <div class="flex items-center gap-4">
+                            <img src={m.img} alt={m.nombre} class="w-14 h-14 rounded-2xl object-cover border border-amber-200 shrink-0 shadow-xs" />
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="font-black text-slate-900">{m.nombre}</h3>
+                                    <span class={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${m.estado === 'adoptado' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                                        {m.estado === 'adoptado' ? '🎉 ADOPTADO' : '🟢 DISPONIBLE'}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-500">{m.tipo === 'perro' ? '🐶 Perro' : '🐱 Gato'} &bull; {m.edad} &bull; {m.tags}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button 
+                                data-mascota={JSON.stringify(m)} 
+                                class="btn-editar text-xs font-bold px-3.5 py-2 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer"
+                            >
+                                ✏️ Editar
+                            </button>
+                            <button 
+                                data-id={m.id} 
+                                data-nombre={m.nombre}
+                                class="btn-eliminar text-xs font-bold px-3.5 py-2 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition-colors cursor-pointer"
+                            >
+                                🗑️ Dar de Baja
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('form-mascota') as HTMLFormElement;
+            const btnCancelar = document.getElementById('btn-cancelar') as HTMLButtonElement;
+            const btnGuardar = document.getElementById('btn-guardar') as HTMLButtonElement;
+            const badgeModo = document.getElementById('badge-modo') as HTMLElement;
+            const toastContainer = document.getElementById('toast-container');
+
+            // Modal de Eliminación
+            const modalConfirm = document.getElementById('modal-confirm');
+            const btnCancelarModal = document.getElementById('btn-cancelar-modal');
+            const btnConfirmarEliminar = document.getElementById('btn-confirmar-eliminar');
+            let idParaEliminar: string | null = null;
+
+            // FUNCIÓN SENSACIONAL DE TOAST NOTIFICATION
+            function showToast(message: string, type: 'success' | 'error' | 'info' = 'success') {
+                if (!toastContainer) return;
+
+                const toast = document.createElement('div');
+                toast.className = `pointer-events-auto flex items-center justify-between p-4 rounded-2xl shadow-xl border text-xs font-bold transition-all duration-300 transform translate-y-2 opacity-0 ${
+                    type === 'success' ? 'bg-emerald-900 text-emerald-100 border-emerald-700' :
+                    type === 'error' ? 'bg-rose-900 text-rose-100 border-rose-700' :
+                    'bg-slate-900 text-slate-100 border-slate-700'
+                }`;
+
+                const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+                toast.innerHTML = `<div class="flex items-center gap-2"><span>${icon}</span><span>${message}</span></div>`;
+
+                toastContainer.appendChild(toast);
+
+                // Animación de entrada
+                requestAnimationFrame(() => {
+                    toast.classList.remove('translate-y-2', 'opacity-0');
+                });
+
+                // Auto desvanecer
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', '-translate-y-2');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+
+            // GUARDAR / EDITAR MASCOTA
+            form?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+
+                btnGuardar.disabled = true;
+                btnGuardar.classList.add('opacity-50');
+
+                try {
+                    const res = await fetch('/api/mascotas', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (res.ok) {
+                        showToast('Mascota guardada correctamente.', 'success');
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        showToast('Error al guardar la mascota en Supabase.', 'error');
+                        btnGuardar.disabled = false;
+                        btnGuardar.classList.remove('opacity-50');
+                    }
+                } catch (err) {
+                    showToast('Error de conexión con el servidor.', 'error');
+                    btnGuardar.disabled = false;
+                    btnGuardar.classList.remove('opacity-50');
+                }
+            });
+
+            // LÓGICA DE EDICIÓN
+            document.querySelectorAll('.btn-editar').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const data = JSON.parse(btn.getAttribute('data-mascota') || '{}');
+                    (document.getElementById('mascota-id') as HTMLInputElement).value = data.id || '';
+                    (document.getElementById('nombre') as HTMLInputElement).value = data.nombre || '';
+                    (document.getElementById('tipo') as HTMLSelectElement).value = data.tipo || 'perro';
+                    (document.getElementById('edad') as HTMLInputElement).value = data.edad || '';
+                    (document.getElementById('tags') as HTMLInputElement).value = data.tags || '';
+                    (document.getElementById('estado') as HTMLSelectElement).value = data.estado || 'disponible';
+                    (document.getElementById('img') as HTMLInputElement).value = data.img || '';
+                    (document.getElementById('desc') as HTMLInputElement).value = data.desc || '';
+                    (document.getElementById('historia') as HTMLTextAreaElement).value = data.historia || '';
+
+                    btnCancelar?.classList.remove('hidden');
+                    badgeModo?.classList.remove('hidden');
+                    showToast(`Editando a ${data.nombre}...`, 'info');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            });
+
+            btnCancelar?.addEventListener('click', () => {
+                form.reset();
+                (document.getElementById('mascota-id') as HTMLInputElement).value = '';
+                btnCancelar.classList.add('hidden');
+                badgeModo?.classList.add('hidden');
+                showToast('Edición cancelada.', 'info');
+            });
+
+            // MANEJO DE ELIMINACIÓN CON MODAL
+            document.querySelectorAll('.btn-eliminar').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    idParaEliminar = btn.getAttribute('data-id');
+                    modalConfirm?.classList.remove('hidden');
+                });
+            });
+
+            btnCancelarModal?.addEventListener('click', () => {
+                modalConfirm?.classList.add('hidden');
+                idParaEliminar = null;
+            });
+
+            btnConfirmarEliminar?.addEventListener('click', async () => {
+                if (!idParaEliminar) return;
+
+                modalConfirm?.classList.add('hidden');
+
+                try {
+                    const res = await fetch('/api/mascotas', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: idParaEliminar })
+                    });
+
+                    if (res.ok) {
+                        showToast('Mascota dada de baja con éxito.', 'success');
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        showToast('Error al dar de baja la mascota.', 'error');
+                    }
+                } catch (err) {
+                    showToast('Error de conexión al eliminar.', 'error');
+                } finally {
+                    idParaEliminar = null;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,21 +1,20 @@
 ---
 // src/pages/adoptar.astro
 import '../styles/global.css';
+import { supabase } from '../lib/supabase';
+
+export const prerender = false;
+
+// Cargar mascotas disponibles para el select
+const { data: mascotasDB } = await supabase
+  .from('mascotas')
+  .select('id, nombre, tipo')
+  .eq('estado', 'disponible')
+  .order('nombre', { ascending: true });
 
 const mascotas = [
   { id: 'indeciso', nombre: 'Aún no lo decido / Ver opciones' },
-  { id: 'toby', nombre: 'Toby (Perro)' },
-  { id: 'luna', nombre: 'Luna (Gato)' },
-  { id: 'rocky', nombre: 'Rocky (Perro)' },
-  { id: 'mimi', nombre: 'Mimi (Gato)' },
-  { id: 'buba', nombre: 'Buba (Perro)' },
-  { id: 'simba', nombre: 'Simba (Gato)' },
-  { id: 'max', nombre: 'Max (Perro)' },
-  { id: 'garfield', nombre: 'Garfield (Gato)' },
-  { id: 'kira', nombre: 'Kira (Perro)' },
-  { id: 'pelusa', nombre: 'Pelusa (Gato)' },
-  { id: 'bruno', nombre: 'Bruno (Perro)' },
-  { id: 'salem', nombre: 'Salem (Gato)' }
+  ...(mascotasDB?.map(m => ({ id: m.id, nombre: `${m.nombre} (${m.tipo === 'perro' ? 'Perro' : 'Gato'})` })) || [])
 ];
 ---
 
@@ -230,7 +229,7 @@ const mascotas = [
                         });
 
                         if (response.ok) {
-                            window.location.href = '/gracias/';
+                            window.location.href = '/gracias';
                         } else {
                             const errorData = await response.json().catch(() => ({}));
                             alert('Error al enviar la solicitud: ' + (errorData.error || 'Inténtalo de nuevo.'));

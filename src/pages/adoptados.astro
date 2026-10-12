@@ -1,0 +1,79 @@
+---
+import '../styles/global.css';
+import { supabase } from '../lib/supabase';
+
+export const prerender = false;
+
+// Cargar solo las mascotas marcadas como 'adoptado'
+const { data: adoptados } = await supabase
+  .from('mascotas')
+  .select('*')
+  .eq('estado', 'adoptado');
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mascotas Adoptadas 🎉 - Huellitas en Casa</title>
+</head>
+<body class="bg-amber-50/40 text-slate-800 antialiased font-sans min-h-screen flex flex-col">
+
+    <nav class="bg-white border-b border-amber-100 sticky top-0 z-50 shadow-xs">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="/" class="text-2xl md:text-3xl font-black text-amber-600 tracking-tight">
+                Huellitas en Casa 🐾
+            </a>
+            <a href="/" class="text-xs font-bold text-slate-600 hover:text-amber-600 transition-colors">
+                ← Ver Mascotas Disponibles
+            </a>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 py-12 flex flex-col items-center text-center flex-grow space-y-10">
+        
+        <div class="max-w-2xl space-y-3">
+            <span class="bg-emerald-100 text-emerald-800 text-xs font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider">
+                Finales Felices 🎉
+            </span>
+            <h1 class="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+                ¡Ya tienen un hogar! ❤️
+            </h1>
+            <p class="text-slate-600 text-base">
+                Esta es la galería de peluditos que encontraron una familia llena de amor gracias a la adopción responsable.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
+            {adoptados && adoptados.length > 0 ? (
+                adoptados.map((m) => (
+                    <div class="bg-white rounded-3xl border border-amber-100/70 overflow-hidden shadow-xl shadow-amber-900/5 flex flex-col">
+                        <div class="relative h-64 bg-slate-100">
+                            <img src={m.img} alt={m.nombre} class="w-full h-full object-cover" />
+                            <span class="absolute top-3 right-3 bg-emerald-500 text-white text-xs font-black px-3 py-1 rounded-full shadow-md">
+                                ¡Adoptado! 🏠
+                            </span>
+                        </div>
+                        <div class="p-6 text-left flex flex-col flex-grow space-y-2">
+                            <h3 class="text-2xl font-black text-slate-900">{m.nombre}</h3>
+                            <p class="text-xs font-bold text-amber-600 uppercase">{m.tipo === 'perro' ? '🐶 Perro' : '🐱 Gato'} &bull; {m.edad}</p>
+                            <p class="text-slate-500 text-sm">{m.desc}</p>
+                        </div>
+                    </div>
+                ))
+            ) : (
+                <div class="col-span-full p-16 bg-white rounded-3xl border border-amber-100 text-slate-400 font-medium">
+                    Aún no hay peluditos marcados en la sección de adoptados.
+                </div>
+            )}
+        </div>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 text-center py-6 text-xs border-t-4 border-amber-500">
+        &copy; {new Date().getFullYear()} Huellitas en Casa.
+    </footer>
+
+</body>
+</html>

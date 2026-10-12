@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase';
 
 export const prerender = false; // Se ejecuta en el servidor
 
-export const POST: APIRoute = async ({ request, redirect }) => {
+export const POST: APIRoute = async ({ request }) => {
   try {
     const formData = await request.formData();
 
@@ -33,7 +33,11 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       });
     }
 
-    return redirect('/gracias', 303);
+    // Retornamos éxito en JSON para que el fetch del cliente lo redirija
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
   } catch (e) {
     console.error('Error procesando el formulario:', e);
     return new Response(JSON.stringify({ error: 'Error interno del servidor' }), {

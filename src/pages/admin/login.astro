@@ -1,0 +1,98 @@
+---
+import '../../styles/global.css';
+import { supabase } from '../../lib/supabase';
+
+export const prerender = false;
+
+let errorMsg = '';
+
+// Desestructuramos request, cookies y redirect de Astro
+const { request, cookies, redirect } = Astro;
+
+if (request.method === 'POST') {
+  try {
+    const formData = await request.formData();
+    const email = formData.get('email')?.toString();
+    const password = formData.get('password')?.toString();
+
+    if (!email || !password) {
+      errorMsg = 'Por favor completa todos los campos.';
+    } else {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        errorMsg = 'Credenciales incorrectas. Verifica tus datos.';
+      } else if (data.session) {
+        // Guardar tokens en cookies seguras para SSR
+        cookies.set('sb-access-token', data.session.access_token, {
+          path: '/',
+          secure: true,
+          httpOnly: true,
+          sameSite: 'lax',
+        });
+        cookies.set('sb-refresh-token', data.session.refresh_token, {
+          path: '/',
+          secure: true,
+          httpOnly: true,
+          sameSite: 'lax',
+        });
+
+        return redirect('/admin/solicitudes');
+      }
+    }
+  } catch (err) {
+    errorMsg = 'Ocurrió un error al iniciar sesión.';
+  }
+}
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Admin Huellitas</title>
+</head>
+<body class="bg-amber-50/40 text-slate-800 antialiased font-sans min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white p-8 rounded-3xl border border-amber-100 shadow-2xl shadow-amber-900/10 max-w-md w-full space-y-6">
+        <div class="text-center space-y-2">
+            <span class="text-3xl">🐾</span>
+            <h1 class="text-2xl font-black text-slate-900">Panel de Administración</h1>
+            <p class="text-xs text-slate-500">Ingresa tus credenciales para gestionar el refugio</p>
+        </div>
+
+        {errorMsg && (
+            <div class="bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold p-3 rounded-xl text-center">
+                {errorMsg}
+            </div>
+        )}
+
+        <form method="POST" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Correo Electrónico</label>
+                <input type="email" name="email" required class="w-full px-4 py-3 rounded-xl border border-amber-200 bg-amber-50/20 text-sm outline-none focus:border-amber-500" placeholder="admin@huellitas.com" />
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Contraseña</label>
+                <input type="password" name="password" required class="w-full px-4 py-3 rounded-xl border border-amber-200 bg-amber-50/20 text-sm outline-none focus:border-amber-500" placeholder="••••••••" />
+            </div>
+
+            <button type="submit" class="w-full bg-slate-900 hover:bg-amber-500 text-white font-bold py-3 rounded-xl transition-colors text-sm shadow-md cursor-pointer">
+                Iniciar Sesión 🚀
+            </button>
+        </form>
+
+        <div class="text-center">
+            <a href="/" class="text-xs font-bold text-slate-400 hover:text-amber-600 transition-colors">
+                ← Volver al sitio público
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
