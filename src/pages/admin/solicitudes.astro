@@ -102,7 +102,7 @@ const solicitudes = solicitudesDB || [];
             <a href="/admin/solicitudes" class={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${filtroActual === 'todos' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Todos</a>
             <a href="/admin/solicitudes?filtro=nuevo" class={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${filtroActual === 'nuevo' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Nuevos 🆕</a>
             <a href="/admin/solicitudes?filtro=aceptada" class={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${filtroActual === 'aceptada' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'}`}>Aceptadas ✅</a>
-            <a href="/admin/solicitudes?filtro=revision" class={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${filtroActual === 'revision' ? 'bg-amber-500 text-white' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'}`}>En Revisión 🔍</a>
+            <a href="/admin/solicitudes?filtro=en_revision" class={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${filtroActual === 'en_revision' ? 'bg-amber-500 text-white' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'}`}>En Revisión 🔍</a>
             <a href="/admin/solicitudes?filtro=pendiente" class={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${filtroActual === 'pendiente' ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}>Pendientes ⏳</a>
             <a href="/admin/solicitudes?filtro=descartado" class={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${filtroActual === 'descartado' ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-700 hover:bg-rose-100'}`}>Descartados ❌</a>
         </div>
@@ -158,7 +158,7 @@ const solicitudes = solicitudesDB || [];
                                         >
                                             <option value="nuevo" selected={sol.estado === 'nuevo'}>Nuevo 🆕</option>
                                             <option value="aceptada" selected={sol.estado === 'aceptada'}>Aceptada ✅</option>
-                                            <option value="revision" selected={sol.estado === 'revision'}>En Revisión 🔍</option>
+                                            <option value="en_revision" selected={sol.estado === 'en_revision'}>En Revisión 🔍</option>
                                             <option value="pendiente" selected={sol.estado === 'pendiente'}>Pendiente ⏳</option>
                                             <option value="descartado" selected={sol.estado === 'descartado'}>Descartado ❌</option>
                                         </select>
