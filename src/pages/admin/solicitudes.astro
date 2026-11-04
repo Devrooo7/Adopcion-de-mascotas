@@ -136,7 +136,7 @@ const solicitudes = solicitudesDB || [];
                                         <p class="text-xs text-slate-500">{sol.ocupacion}</p>
                                     </td>
                                     <td class="p-4 align-top font-bold text-amber-600">
-                                        {sol.mascota_id ? `ID: ${sol.mascota_id}` : 'General / No especificada'}
+                                        {sol.mascota_id ? sol.mascota_id : 'General / No especificada'}
                                     </td>
                                     <td class="p-4 align-top text-xs space-y-1">
                                         <p class="font-mono text-slate-700">📧 {sol.email}</p>
@@ -150,10 +150,12 @@ const solicitudes = solicitudesDB || [];
                                         <p class="text-slate-500 truncate" title={sol.motivo_adopcion}>Razones: {sol.motivo_adopcion}</p>
                                     </td>
                                     <td class="p-4 align-top">
-                                        <!-- CAMBIO DE ESTATUS CON SINCRONIZACIÓN AUTOMÁTICA DE MASCOTA -->
+                                        <!-- SELECTOR DE ESTATUS CON ATRIBUTOS PARA ENVIAR CORREO -->
                                         <select 
                                             data-solicitud-id={sol.id}
                                             data-mascota-id={sol.mascota_id}
+                                            data-email={sol.email}
+                                            data-nombre={sol.nombre_adoptante}
                                             class="cambiar-estatus-select text-xs font-extrabold px-3 py-1.5 rounded-xl border cursor-pointer transition-colors bg-slate-100 text-slate-700 border-slate-300"
                                         >
                                             <option value="nuevo" selected={sol.estado === 'nuevo'}>Nuevo 🆕</option>
@@ -199,12 +201,14 @@ const solicitudes = solicitudesDB || [];
     <script>
         import { supabase } from '../../lib/supabase';
 
-        // Manejar cambio de estatus en tiempo real
+        // Manejar cambio de estatus en tiempo real + envío de correo por Resend
         document.querySelectorAll('.cambiar-estatus-select').forEach(select => {
             select.addEventListener('change', async (e) => {
                 const target = e.target as HTMLSelectElement;
                 const id = target.getAttribute('data-solicitud-id');
                 const mascotaId = target.getAttribute('data-mascota-id');
+                const email = target.getAttribute('data-email');
+                const nombreAdoptante = target.getAttribute('data-nombre');
                 const nuevoEstado = target.value;
 
                 target.disabled = true;
@@ -232,6 +236,24 @@ const solicitudes = solicitudesDB || [];
 
                     if (errorMascota) {
                         console.error('Error actualizando estado de la mascota:', errorMascota);
+                    }
+                }
+
+                // 3. Enviar correo automático mediante el API de Resend
+                if (email) {
+                    try {
+                        await fetch('/api/enviar-notificacion', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email,
+                                nombreAdoptante,
+                                nombreMascota: mascotaId || 'Mascota',
+                                nuevoEstado
+                            })
+                        });
+                    } catch (err) {
+                        console.error('Error enviando notificación por correo:', err);
                     }
                 }
 
