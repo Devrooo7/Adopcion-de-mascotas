@@ -251,7 +251,7 @@ const solicitudes = solicitudesDB || [];
                 // 3. Enviar correo automático y validar si la respuesta dio error
                 if (email) {
                     try {
-                        const response = await fetch('/api/enviar-notificacion', {
+                        const response = await fetch('/api/enviar-notificaciones', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
