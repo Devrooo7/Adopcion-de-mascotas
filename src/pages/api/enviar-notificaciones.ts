@@ -1,6 +1,7 @@
 // src/pages/api/enviar-notificacion.ts
 import type { APIRoute } from 'astro';
 import { Resend } from 'resend';
+import { supabase } from '../../lib/supabase';
 
 export const prerender = false;
 
@@ -8,13 +9,13 @@ const resend = new Resend(import.meta.env.RESEND_API_KEY);
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { email, nombreAdoptante, nombreMascota, nuevoEstado } = await request.json();
+    const { id, email, nombreAdoptante, nombreMascota, nuevoEstado } = await request.json();
 
     let asunto = '';
     let contenidoHtml = '';
 
     if (nuevoEstado === 'aceptada') {
-      asunto = `🎉 ¡Felicidades! Tu solicitud para adoptar a ${nombreMascota} ha sido Aceptada`;
+      asunto = `🎉 ¡Felicidades! Tu solicitud para adoptar a ${nombreMascota} has sido Aceptada`;
       contenidoHtml = `
         <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; background-color: #fffbeb; border-radius: 10px;">
           <h1 style="color: #d97706; text-align: center;">🐾 ¡Certificado de Adopción Aprobada! 🐾</h1>
@@ -34,7 +35,6 @@ export const POST: APIRoute = async ({ request }) => {
         </div>
       `;
     } else {
-      // Notificaciones para otros estatus (en_revision, pendiente, descartado)
       const mensajesEstado: Record<string, string> = {
         'en_revision': 'Tu solicitud se encuentra actualmente en proceso de revisión por nuestro equipo.',
         'pendiente': 'Tu solicitud está en espera de información adicional o documentos.',
@@ -55,7 +55,7 @@ export const POST: APIRoute = async ({ request }) => {
       `;
     }
 
-    // Envío del correo usando Resend (puedes usar un correo tuyo verificado o el de prueba de Resend)
+    // Envío del correo usando Resend
     const { data, error } = await resend.emails.send({
       from: 'Huellitas en Casa <onboarding@resend.dev>',
       to: [email],
@@ -64,7 +64,20 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     if (error) {
+      if (id) {
+        await supabase
+          .from('solicitudes')
+          .update({ email_error: true })
+          .eq('id', id);
+      }
       return new Response(JSON.stringify({ success: false, error }), { status: 400 });
+    }
+
+    if (id) {
+      await supabase
+        .from('solicitudes')
+        .update({ email_error: false })
+        .eq('id', id);
     }
 
     return new Response(JSON.stringify({ success: true, data }), { status: 200 });

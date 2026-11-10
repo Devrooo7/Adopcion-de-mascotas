@@ -139,8 +139,26 @@ const solicitudes = solicitudesDB || [];
                                         {sol.mascota_id ? sol.mascota_id : 'General / No especificada'}
                                     </td>
                                     <td class="p-4 align-top text-xs space-y-1">
-                                        <p class="font-mono text-slate-700">📧 {sol.email}</p>
-                                        <p class="font-mono text-slate-700">📱 {sol.telefono}</p>
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <p class="font-mono text-slate-700">📧 {sol.email}</p>
+                                            {sol.email_error && (
+                                                <span class="bg-rose-100 text-rose-700 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-rose-200" title="El correo no existe o el mensaje rebotó">
+                                                    ⚠️ Rebotado / Inválido
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <p class="font-mono text-slate-700">📱 {sol.telefono}</p>
+                                            {sol.telefono && (
+                                                <a 
+                                                    href={`https://wa.me/52${sol.telefono.replace(/[^0-9]/g, '')}`} 
+                                                    target="_blank" 
+                                                    class="text-emerald-600 font-bold hover:underline text-[11px]"
+                                                >
+                                                    WhatsApp 💬
+                                                </a>
+                                            )}
+                                        </div>
                                     </td>
                                     <td class="p-4 align-top text-xs space-y-1 max-w-xs">
                                         <p>🏡 Casa: <span class="font-bold">{sol.tipo_vivienda}</span> ({sol.propiedad_vivienda})</p>
@@ -246,6 +264,7 @@ const solicitudes = solicitudesDB || [];
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
+                                id,
                                 email,
                                 nombreAdoptante,
                                 nombreMascota: mascotaId || 'Mascota',
