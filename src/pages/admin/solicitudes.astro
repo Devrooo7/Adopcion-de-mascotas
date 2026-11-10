@@ -45,10 +45,9 @@ const solicitudes = solicitudesDB || [];
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased font-sans min-h-screen flex flex-col">
 
-    <!-- BARRA DE NAVEGACIÓN ADMINISTRATIVA (RESPONSIVA Y CON CIERRE DE SESIÓN) -->
+    <!-- BARRA DE NAVEGACIÓN ADMINISTRATIVA -->
     <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50 shadow-md">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <!-- Lado izquierdo: Logo y Links principales en Desktop -->
             <div class="flex items-center gap-8">
                 <span class="font-black text-xl text-amber-400 tracking-wide">🐾 Admin Huellitas</span>
                 <nav class="hidden md:flex items-center gap-3 text-sm font-bold">
@@ -61,7 +60,6 @@ const solicitudes = solicitudesDB || [];
                 </nav>
             </div>
 
-            <!-- Lado derecho: Sitio público y Cerrar sesión (Desktop) -->
             <div class="hidden md:flex items-center gap-5">
                 <a href="/" target="_blank" class="text-xs font-bold text-slate-400 hover:text-white transition-colors">
                     Ver Sitio Público ↗
@@ -74,7 +72,6 @@ const solicitudes = solicitudesDB || [];
                 </button>
             </div>
 
-            <!-- Versión simplificada para celulares (Móvil) -->
             <div class="flex md:hidden items-center gap-2">
                 <a href="/admin/solicitudes" class="bg-slate-800 text-amber-400 text-xs font-bold px-3 py-1.5 rounded-lg">Solicitudes</a>
                 <a href="/admin/mascotas" class="text-slate-300 text-xs font-bold px-3 py-1.5 rounded-lg">Mascotas</a>
@@ -139,6 +136,7 @@ const solicitudes = solicitudesDB || [];
                                         {sol.mascota_id ? sol.mascota_id : 'General / No especificada'}
                                     </td>
                                     <td class="p-4 align-top text-xs space-y-1">
+                                        <!-- ALERTA VISUAL DE CORREO REBOTADO O INVÁLIDO -->
                                         <div class="flex items-center gap-1.5 flex-wrap">
                                             <p class="font-mono text-slate-700">📧 {sol.email}</p>
                                             {sol.email_error && (
@@ -168,7 +166,6 @@ const solicitudes = solicitudesDB || [];
                                         <p class="text-slate-500 truncate" title={sol.motivo_adopcion}>Razones: {sol.motivo_adopcion}</p>
                                     </td>
                                     <td class="p-4 align-top">
-                                        <!-- SELECTOR DE ESTATUS CON ATRIBUTOS PARA ENVIAR CORREO -->
                                         <select 
                                             data-solicitud-id={sol.id}
                                             data-mascota-id={sol.mascota_id}
@@ -219,7 +216,6 @@ const solicitudes = solicitudesDB || [];
     <script>
         import { supabase } from '../../lib/supabase';
 
-        // Manejar cambio de estatus en tiempo real + envío de correo por Resend
         document.querySelectorAll('.cambiar-estatus-select').forEach(select => {
             select.addEventListener('change', async (e) => {
                 const target = e.target as HTMLSelectElement;
@@ -243,24 +239,19 @@ const solicitudes = solicitudesDB || [];
                     return;
                 }
 
-                // 2. Si hay una mascota asociada, actualizar su estado en la tabla 'mascotas'
+                // 2. Actualizar estado de la mascota
                 if (mascotaId && mascotaId !== 'null' && mascotaId.trim() !== '') {
                     const estadoMascota = nuevoEstado === 'aceptada' ? 'adoptado' : 'disponible';
-                    
-                    const { error: errorMascota } = await supabase
+                    await supabase
                         .from('mascotas')
                         .update({ estado: estadoMascota })
                         .or(`id.eq.${mascotaId},nombre.ilike.${mascotaId}`);
-
-                    if (errorMascota) {
-                        console.error('Error actualizando estado de la mascota:', errorMascota);
-                    }
                 }
 
-                // 3. Enviar correo automático mediante el API de Resend
+                // 3. Enviar correo automático y validar si la respuesta dio error
                 if (email) {
                     try {
-                        await fetch('/api/enviar-notificacion', {
+                        const response = await fetch('/api/enviar-notificacion', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -271,6 +262,12 @@ const solicitudes = solicitudesDB || [];
                                 nuevoEstado
                             })
                         });
+
+                        const resData = await response.json();
+
+                        if (!resData.success) {
+                            alert('⚠️ El estado se actualizó, pero no se pudo entregar el correo. Se marcó la solicitud como "Correo Inválido/Rebotado".');
+                        }
                     } catch (err) {
                         console.error('Error enviando notificación por correo:', err);
                     }
@@ -281,7 +278,7 @@ const solicitudes = solicitudesDB || [];
             });
         });
 
-        // Manejar botón de copiar correo al portapapeles
+        // Botón copiar correo
         document.querySelectorAll('.btn-contactar').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const target = e.currentTarget as HTMLButtonElement;
@@ -301,14 +298,12 @@ const solicitudes = solicitudesDB || [];
             });
         });
 
-        // Función global para cerrar sesión limpia y redirigir al sitio público
         function cerrarSesionAdmin() {
             document.cookie = 'sb-access-token=; Max-Age=0; path=/;';
             document.cookie = 'sb-refresh-token=; Max-Age=0; path=/;';
             window.location.href = '/';
         }
 
-        // Exponer función al objeto global window para atender los eventos onclick
         (window as any).cerrarSesionAdmin = cerrarSesionAdmin;
     </script>
 </body>
