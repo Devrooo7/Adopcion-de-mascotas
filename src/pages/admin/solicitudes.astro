@@ -212,6 +212,48 @@ const solicitudes = solicitudesDB || [];
         </div>
     </main>
 
+    <!-- MODAL / NOTIFICACIÓN VISUAL DE CORREO REBOTADO O INVÁLIDO -->
+    <div 
+        id="modal-error-correo" 
+        class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 transition-opacity"
+        role="alertdialog"
+        aria-modal="true"
+    >
+        <div class="bg-white border border-slate-200 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden">
+            <div class="h-2 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500"></div>
+            
+            <div class="p-6 space-y-4">
+                <div class="flex items-start gap-4">
+                    <div class="flex-shrink-0 w-12 h-12 rounded-2xl bg-amber-100 border border-amber-200 text-amber-600 flex items-center justify-center text-2xl shadow-xs">
+                        ⚠️
+                    </div>
+                    <div class="space-y-1">
+                        <span class="inline-block bg-rose-100 text-rose-700 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+                            Correo Inválido / Rebotado
+                        </span>
+                        <h3 class="text-lg font-black text-slate-900 leading-snug">
+                            No se pudo entregar el correo
+                        </h3>
+                    </div>
+                </div>
+
+                <p class="text-sm text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+                    El estado de la solicitud <strong class="text-slate-800">sí se actualizó</strong>, pero Resend no pudo entregar la notificación a <span id="modal-correo-destino" class="font-mono text-xs font-bold text-rose-600 break-all"></span>. Se marcó la solicitud como "Correo Inválido/Rebotado".
+                </p>
+
+                <div class="pt-1 flex justify-end">
+                    <button 
+                        id="btn-cerrar-modal-correo"
+                        type="button"
+                        class="w-full sm:w-auto bg-slate-900 hover:bg-amber-500 text-white text-xs font-extrabold px-5 py-3 rounded-xl transition-colors shadow-sm cursor-pointer"
+                    >
+                        Entendido, actualizar tabla
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- SCRIPT CLIENTE -->
     <script>
         import { supabase } from '../../lib/supabase';
@@ -266,7 +308,10 @@ const solicitudes = solicitudesDB || [];
                         const resData = await response.json();
 
                         if (!resData.success) {
-                            alert('⚠️ El estado se actualizó, pero no se pudo entregar el correo. Se marcó la solicitud como "Correo Inválido/Rebotado".');
+                            target.disabled = false;
+                            await mostrarAlertaCorreoError(email);
+                            window.location.reload();
+                            return;
                         }
                     } catch (err) {
                         console.error('Error enviando notificación por correo:', err);
@@ -297,6 +342,30 @@ const solicitudes = solicitudesDB || [];
                 }
             });
         });
+
+        function mostrarAlertaCorreoError(emailDestino: string): Promise<void> {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('modal-error-correo');
+                const spanCorreo = document.getElementById('modal-correo-destino');
+                const btnCerrar = document.getElementById('btn-cerrar-modal-correo');
+
+                if (!modal || !btnCerrar) {
+                    resolve();
+                    return;
+                }
+
+                if (spanCorreo) {
+                    spanCorreo.textContent = emailDestino;
+                }
+
+                modal.classList.remove('hidden');
+
+                btnCerrar.onclick = () => {
+                    modal.classList.add('hidden');
+                    resolve();
+                };
+            });
+        }
 
         function cerrarSesionAdmin() {
             document.cookie = 'sb-access-token=; Max-Age=0; path=/;';
